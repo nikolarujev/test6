@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ExpireTrack – Smart Pantry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#e8f5e9}
+body{font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center}
+:root{--green:#10B981;--gd:#059669;--gl:#D1FAE5;--gb:#ECFDF5;--amb:#F59E0B;--ab:#FFFBEB;--red:#EF4444;--rb:#FEF2F2;--gray:#6B7280;--bd:#E5E7EB}
+.app{display:flex;flex-direction:column;width:100%;max-width:430px;height:100vh;background:#fff;box-shadow:0 0 60px rgba(0,0,0,.15);position:relative;overflow:hidden}
+.hdr{background:#fff;padding:16px 18px 0;border-bottom:1px solid #F3F4F6;flex-shrink:0;z-index:10}
+.htop{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px}
+.logo{display:flex;align-items:center;gap:10px}
+.lico{width:38px;height:38px;border-radius:10px;background:var(--gb);display:flex;align-items:center;justify-content:center;font-size:20px}
+.ltxt h1{font-size:18px;font-weight:700;color:#1F2937}
+.ltxt p{font-size:11px;color:var(--gray);margin-top:1px}
+.hadd{display:flex;align-items:center;gap:6px;background:var(--green);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
+.hadd:hover{background:var(--gd)}
+.tabs{display:flex;border-bottom:1px solid #F3F4F6}
+.tab{flex:1;padding:10px 4px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab.on{color:var(--green);border-bottom-color:var(--green)}
+.ftabs{display:flex;gap:5px;padding:10px 0 13px}
+.ftab{flex:1;border:none;border-radius:9px;padding:8px 3px;cursor:pointer;font-family:inherit;background:#F3F4F6;transition:all .15s}
+.ftab .fl{font-size:11px;font-weight:700;display:block;line-height:1}
+.ftab .fc{font-size:15px;font-weight:800;display:block;margin-top:3px;line-height:1}
+.ftab.a-all,.ftab.a-good{background:var(--green);color:#fff}
+.ftab.a-warning{background:var(--amb);color:#fff}
+.ftab.a-expired{background:var(--red);color:#fff}
+.ftab:not([class*="a-"]).t-good .fl,.ftab:not([class*="a-"]).t-good .fc{color:var(--green)}
+.ftab:not([class*="a-"]).t-warning .fl,.ftab:not([class*="a-"]).t-warning .fc{color:var(--amb)}
+.ftab:not([class*="a-"]).t-expired .fl,.ftab:not([class*="a-"]).t-expired .fc{color:var(--red)}
+.ftab:not([class*="a-"]) .fl,.ftab:not([class*="a-"]) .fc{color:var(--gray)}
+.con{flex:1;overflow-y:auto;padding:12px 0 90px}
+.dash{padding:14px 16px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{background:#F9FAFB;border-radius:10px;padding:10px 12px;text-align:center}
+.stat .sv{font-size:22px;font-weight:800;display:block}
+.stat .sl{font-size:10px;color:var(--gray);display:block;margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.stat.sg .sv{color:var(--green)}.stat.sw .sv{color:var(--amb)}.stat.se .sv{color:var(--red)}
+.chart-wrap{background:#F9FAFB;border-radius:12px;padding:14px;margin-bottom:14px}
+.chart-label{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bar-name{font-size:11px;color:#374151;width:65px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:10px;background:#E5E7EB;border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width .4s ease}
+.bar-val{font-size:11px;font-weight:700;width:28px;text-align:right;flex-shrink:0}
+.sort-row{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 4px}
+.sort-lbl{font-size:11px;color:var(--gray);font-weight:600}
+.sort-sel{font-size:12px;border:1px solid var(--bd);border-radius:7px;padding:4px 8px;background:#fff;color:#1F2937;font-family:inherit;cursor:pointer}
+.fi{background:#fff;border-radius:13px;margin:0 14px 9px;box-shadow:0 2px 8px rgba(0,0,0,.05);border-left:4px solid;display:flex;align-items:center;padding:13px 13px 13px 15px;gap:12px;animation:sli .2s ease}
+@keyframes sli{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.fi.good{border-color:var(--green)}.fi.warning{border-color:var(--amb)}.fi.expired{border-color:var(--red)}
+.fico{width:42px;height:42px;border-radius:21px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
+.good .fico{background:var(--gb);color:var(--green)}.warning .fico{background:var(--ab);color:var(--amb)}.expired .fico{background:var(--rb);color:var(--red)}
+.fnfo{flex:1;min-width:0}
+.fname{font-size:13px;font-weight:700;color:#1F2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.fdate{font-size:11px;color:var(--gray);display:flex;align-items:center;gap:3px;margin-bottom:3px}
+.fbadge{display:inline-flex;align-items:center;gap:5px}
+.bdg{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.3px}
+.good .bdg{background:var(--gb);color:#065F46}.warning .bdg{background:var(--ab);color:#92400E}.expired .bdg{background:var(--rb);color:#991B1B}
+.dl{font-size:11px;font-weight:500}
+.good .dl{color:var(--green)}.warning .dl{color:var(--amb)}.expired .dl{color:var(--red)}
+.fact-row{display:flex;gap:2px;flex-shrink:0}
+.iact{background:none;border:none;cursor:pointer;padding:6px;color:#D1D5DB;border-radius:7px;transition:all .15s}
+.iact.edit:hover{color:var(--green);background:var(--gb)}.iact.del:hover{color:var(--red);background:var(--rb)}
+.iact i{font-size:18px}
+.fab{position:absolute;bottom:24px;right:20px;width:56px;height:56px;border-radius:28px;background:var(--green);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(16,185,129,.45);z-index:20;transition:all .15s}
+.fab:hover{background:var(--gd);transform:scale(1.06)}
+.fab i{font-size:25px}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 40px;text-align:center;height:260px}
+.eico{width:80px;height:80px;border-radius:40px;background:var(--gb);display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:16px}
+.empty h2{font-size:17px;font-weight:700;color:#1F2937;margin-bottom:6px}
+.empty p{font-size:13px;color:var(--gray);line-height:1.6}
+.ov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.ov.hid{display:none}
+.mdl{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:430px;max-height:92vh;display:flex;flex-direction:column;animation:sup .22s ease}
+@keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mhdl{width:34px;height:4px;background:#E5E7EB;border-radius:2px;margin:10px auto 6px}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:8px 22px 10px;border-bottom:1px solid #F3F4F6}
+.mtitle{display:flex;align-items:center;gap:9px}
+.sbdg{width:24px;height:24px;border-radius:12px;background:var(--green);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.mtitle h2{font-size:16px;font-weight:700;color:#1F2937}
+.xbtn{background:none;border:none;cursor:pointer;padding:4px;color:var(--gray)}
+.xbtn i{font-size:22px}
+.prog{display:flex;gap:4px;padding:8px 22px}
+.pseg{flex:1;height:4px;border-radius:2px;background:#E5E7EB;transition:background .2s}
+.pseg.dn{background:var(--green)}
+.mbody{overflow-y:auto;padding:14px 22px 22px;flex:1}
+.mback{text-align:center;padding:8px 22px 14px;color:var(--gray);font-size:13px;cursor:pointer;border:none;background:none;font-family:inherit;width:100%}
+.mback:hover{color:#1F2937}
+.scan-c{display:flex;flex-direction:column;align-items:center;padding:6px 0}
+.scanner-wrap{position:relative;width:100%;max-width:300px;margin-bottom:10px;border-radius:16px;overflow:hidden;background:#000;display:none}
+.scanner-wrap video{width:100%;display:block}
+.scan-overlay{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.scan-frame{width:72%;height:48%;border:2px solid var(--green);border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
+.scan-line{position:absolute;width:68%;height:2px;background:var(--green);animation:scanln 2s ease-in-out infinite;opacity:.9}
+@keyframes scanln{0%,100%{top:28%}50%{top:68%}}
+.scan-ph{width:100%;max-width:300px;height:190px;border-radius:16px;background:var(--gb);border:2px dashed var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:10px;color:var(--green)}
+.scan-ph i{font-size:52px}
+.scan-ph p{font-size:11px;color:var(--gray);margin-top:5px;text-align:center;padding:0 20px}
+.scan-status{font-size:12px;color:var(--gray);margin-bottom:12px;text-align:center;min-height:18px;padding:0 10px}
+.scan-status.ok{color:var(--green)}.scan-status.err{color:var(--red)}
+.cam-btn{display:flex;align-items:center;gap:7px;background:var(--green);color:#fff;border:none;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;box-shadow:0 3px 10px rgba(16,185,129,.3);transition:background .15s;width:100%;max-width:300px;justify-content:center}
+.cam-btn:hover{background:var(--gd)}
+.cam-btn.red{background:#EF4444;box-shadow:none}
+.cam-btn.red:hover{background:#DC2626}
+.ort{font-size:12px;color:var(--gray);margin-bottom:12px}
+.bc-row{display:flex;gap:7px;width:100%;max-width:300px}
+.bc-in{flex:1;border:1.5px solid var(--gl);border-radius:9px;padding:10px 12px;font-size:14px;background:#F8FFF9;color:#1F2937;font-family:inherit;outline:none}
+.bc-in:focus{border-color:var(--green)}
+.gbtn{background:var(--gd);border:none;border-radius:9px;padding:10px 13px;cursor:pointer;color:#fff;display:flex;align-items:center}
+.ort{font-size:12px;color:var(--gray);margin-bottom:12px}
+.bc-row{display:flex;gap:7px;width:100%;max-width:300px}
+.bc-in{flex:1;border:1.5px solid var(--gl);border-radius:9px;padding:10px 12px;font-size:14px;background:#F8FFF9;color:#1F2937;font-family:inherit;outline:none}
+.bc-in:focus{border-color:var(--green)}
+.gbtn{background:var(--gd);border:none;border-radius:9px;padding:10px 13px;cursor:pointer;color:#fff;display:flex;align-items:center}
+.bc-card{background:var(--gb);border-radius:11px;padding:13px 14px;display:flex;align-items:center;gap:11px;margin-bottom:16px;border:1px solid var(--gl)}
+.bc-card i{font-size:24px;color:var(--green)}
+.bc-meta span{font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block}
+.bc-meta strong{font-size:15px;font-weight:700;color:#1F2937}
+.wbox{background:#FEF3C7;border-radius:9px;padding:10px;display:flex;gap:7px;margin-bottom:13px}
+.wbox i{color:#D97706;font-size:16px;flex-shrink:0;margin-top:1px}
+.wbox p{font-size:12px;color:#92400E}
+.lbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--green);color:#fff;border:none;border-radius:11px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:9px;transition:background .15s}
+.lbtn:hover{background:var(--gd)}
+.lbtn:disabled{background:#A7F3D0;cursor:not-allowed}
+.skbtn{width:100%;background:none;border:none;padding:9px;font-size:13px;color:var(--gray);cursor:pointer;font-family:inherit}
+.flbl{font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.tin{width:100%;border:1.5px solid var(--gl);border-radius:9px;padding:10px 12px;font-size:14px;background:#F8FFF9;color:#1F2937;font-family:inherit;outline:none;margin-bottom:16px}
+.tin:focus{border-color:var(--green)}
+.succ{background:var(--gb);border-radius:9px;padding:10px;display:flex;gap:7px;margin-bottom:13px}
+.succ i{color:var(--green);font-size:16px}
+.succ p{font-size:12px;color:#065F46;font-weight:600}
+.sbtn{width:100%;background:var(--green);color:#fff;border:none;border-radius:11px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;box-shadow:0 3px 10px rgba(16,185,129,.3);transition:background .15s}
+.sbtn:hover{background:var(--gd)}
+.cov{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:22px}
+.cov.hid{display:none}
+.cbox{background:#fff;border-radius:18px;padding:26px;width:100%;max-width:320px;animation:fdin .18s ease}
+@keyframes fdin{from{opacity:0;scale:.95}to{opacity:1;scale:1}}
+.cico{width:54px;height:54px;border-radius:27px;background:var(--rb);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px;color:var(--red)}
+.cbox h3{font-size:17px;font-weight:700;text-align:center;margin-bottom:5px}
+.cnm{font-size:13px;color:var(--gray);text-align:center;margin-bottom:6px}
+.cchip{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:6px;margin-bottom:18px}
+.cacts{display:flex;gap:9px}
+.cancbtn{flex:1;border:1.5px solid var(--bd);border-radius:11px;padding:11px;background:#fff;font-size:13px;font-weight:600;color:var(--gray);cursor:pointer;font-family:inherit}
+.delbtn{flex:1;background:var(--red);border:none;border-radius:11px;padding:11px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.spin{border:2px solid rgba(255,255,255,.3);border-top-color:#fff;width:14px;height:14px;border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <div class="htop">
+      <div class="logo">
+        <div class="lico">🥦</div>
+        <div class="ltxt"><h1>ExpireTrack</h1><p>Smart Pantry</p></div>
+      </div>
+      <button class="hadd" onclick="openAdd()"><i class="ti ti-plus" aria-hidden="true"></i> Add Item</button>
+    </div>
+    <div class="tabs">
+      <button class="tab on" id="tab-pantry" onclick="switchTab('pantry')"><i class="ti ti-chef-hat" aria-hidden="true" style="font-size:13px;margin-right:4px"></i>My Pantry</button>
+      <button class="tab" id="tab-dash" onclick="switchTab('dash')"><i class="ti ti-chart-bar" aria-hidden="true" style="font-size:13px;margin-right:4px"></i>Dashboard</button>
+    </div>
+  </div>
+  <div class="con" id="con"></div>
+  <button class="fab" onclick="openAdd()" title="Add item"><i class="ti ti-plus" aria-hidden="true"></i></button>
+
+  <!-- Add Modal -->
+  <div class="ov hid" id="add-ov" onclick="ovClick(event)">
+    <div class="mdl">
+      <div class="mhdl"></div>
+      <div class="mhdr">
+        <div class="mtitle">
+          <div class="sbdg" id="snum">1</div>
+          <h2 id="stitle">Scan Barcode</h2>
+        </div>
+        <button class="xbtn" onclick="closeAdd()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="prog" id="prog"></div>
+      <div class="mbody" id="mbody"></div>
+      <button class="mback hid" id="mback" onclick="goBack()">← Back</button>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="ov hid" id="edit-ov" onclick="editOvClick(event)">
+    <div class="mdl">
+      <div class="mhdl"></div>
+      <div class="mhdr">
+        <div class="mtitle">
+          <div class="sbdg" style="background:#3B82F6"><i class="ti ti-edit" style="font-size:13px"></i></div>
+          <h2>Edit Item</h2>
+        </div>
+        <button class="xbtn" onclick="closeEdit()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="mbody" id="edit-body"></div>
+    </div>
+  </div>
+
+  <!-- Delete Confirm -->
+  <div class="cov hid" id="del-ov">
+    <div class="cbox">
+      <div class="cico"><i class="ti ti-trash"></i></div>
+      <h3>Remove Item?</h3>
+      <p class="cnm" id="del-name"></p>
+      <div style="text-align:center"><span class="cchip" id="del-chip"></span></div>
+      <div class="cacts" style="margin-top:14px">
+        <button class="cancbtn" onclick="closeDel()">Cancel</button>
+        <button class="delbtn" onclick="confirmDel()">Remove</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var curTab='pantry',curFilter='all',curSort='urgency';
+
+function uid(){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);})}
+function today(){return new Date().toISOString().split('T')[0]}
+function daysFromNow(n){var d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0]}
+
+var SEED=[
+  {id:uid(),barcode:'3017620422003',product_name:'Nutella',expiry_date:daysFromNow(45),added_date:today()},
+  {id:uid(),barcode:'5000159461078',product_name:'Heinz Baked Beans',expiry_date:daysFromNow(3),added_date:today()},
+  {id:uid(),barcode:'',product_name:'Organic Whole Milk',expiry_date:daysFromNow(-2),added_date:today()},
+  {id:uid(),barcode:'',product_name:'Greek Yogurt',expiry_date:daysFromNow(1),added_date:today()},
+  {id:uid(),barcode:'',product_name:'Sourdough Bread',expiry_date:daysFromNow(5),added_date:today()},
+  {id:uid(),barcode:'',product_name:'Cheddar Cheese',expiry_date:daysFromNow(120),added_date:today()}
+];
+var items=JSON.parse(localStorage.getItem('et_v3')||'null')||SEED;
+var curStep='scan',curBC='',curName='',curDate='';
+var delId=null,editId=null;
+function save(){localStorage.setItem('et_v3',JSON.stringify(items))}
+
+function status(d){if(!d)return'unknown';var t=new Date();t.setHours(0,0,0,0);var p=d.split('-'),e=new Date(+p[0],+p[1]-1,+p[2]);e.setHours(0,0,0,0);var diff=Math.ceil((e-t)/86400000);return diff<0?'expired':diff<=7?'warning':'good';}
+function diffDays(d){if(!d)return 9999;var t=new Date();t.setHours(0,0,0,0);var p=d.split('-'),e=new Date(+p[0],+p[1]-1,+p[2]);e.setHours(0,0,0,0);return Math.ceil((e-t)/86400000);}
+function daysLabel(d){if(!d)return'';var diff=diffDays(d);if(diff<0)return'Expired '+Math.abs(diff)+(Math.abs(diff)===1?' day ago':' days ago');if(diff===0)return'Expires today!';if(diff===1)return'Expires tomorrow';return'Expires in '+diff+' days';}
+function fmtDate(d){if(!d)return'';var p=d.split('-'),M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return M[+p[1]-1]+' '+parseInt(p[2])+', '+p[0];}
+function counts(){var g=0,w=0,e=0;items.forEach(function(i){var s=status(i.expiry_date);if(s==='good')g++;else if(s==='warning')w++;else if(s==='expired')e++;});return{good:g,warning:w,expired:e,total:items.length};}
+function getSorted(){
+  var s=items.slice();
+  if(curSort==='urgency'){var o={good:0,warning:1,expired:2,unknown:3};s.sort(function(a,b){var d=o[status(a.expiry_date)]-o[status(b.expiry_date)];return d!==0?d:diffDays(a.expiry_date)-diffDays(b.expiry_date);});}
+  else if(curSort==='az'){s.sort(function(a,b){return(a.product_name||'').localeCompare(b.product_name||'');});}
+  else if(curSort==='za'){s.sort(function(a,b){return(b.product_name||'').localeCompare(a.product_name||'');});}
+  else if(curSort==='newest'){s.sort(function(a,b){return(b.added_date||'').localeCompare(a.added_date||'');});}
+  if(curFilter!=='all')s=s.filter(function(i){return status(i.expiry_date)===curFilter;});
+  return s;
+}
+
+function switchTab(t){curTab=t;document.getElementById('tab-pantry').className='tab'+(t==='pantry'?' on':'');document.getElementById('tab-dash').className='tab'+(t==='dash'?' on':'');render();}
+function setFilter(f){curFilter=f;render();}
+function setSort(v){curSort=v;render();}
+function render(){if(curTab==='pantry')renderPantry();else renderDash();}
+
+function renderPantry(){
+  var c=counts();
+  var tabs=[{k:'all',l:'All',n:c.total,cls:''},{k:'good',l:'Good',n:c.good,cls:'t-good'},{k:'warning',l:'Soon',n:c.warning,cls:'t-warning'},{k:'expired',l:'Expired',n:c.expired,cls:'t-expired'}];
+  var fh='<div style="padding:0 16px"><div class="ftabs">';
+  tabs.forEach(function(t){var act=curFilter===t.k;fh+='<button class="ftab '+(act?'a-'+t.k:t.cls)+'" onclick="setFilter(\''+t.k+'\')"><span class="fl">'+t.l+'</span><span class="fc">'+t.n+'</span></button>';});
+  fh+='</div></div>';
+  var sr='<div class="sort-row"><span class="sort-lbl">Sort by</span><select class="sort-sel" onchange="setSort(this.value)">';
+  [['urgency','Urgency'],['az','A → Z'],['za','Z → A'],['newest','Newest']].forEach(function(o){sr+='<option value="'+o[0]+'"'+(curSort===o[0]?' selected':'')+'>'+o[1]+'</option>';});
+  sr+='</select></div>';
+  var list=getSorted(),lh='';
+  if(!list.length){
+    var em={all:'🛒',good:'✅',warning:'⏰',expired:'🗑️'};
+    var et={all:'Pantry is empty',good:'No good items',warning:'Nothing expiring',expired:'Nothing expired'};
+    var es={all:'Tap Add Item or the + button to add your first product.',good:'No items match this filter.',warning:'Everything looks fresh!',expired:'Nothing expired yet!'};
+    lh='<div class="empty"><div class="eico">'+em[curFilter]+'</div><h2>'+et[curFilter]+'</h2><p>'+es[curFilter]+'</p></div>';
+  }else{
+    list.forEach(function(item){
+      var s=status(item.expiry_date),ic=s==='expired'?'ti-circle-x':s==='warning'?'ti-clock-hour-3':'ti-circle-check',bdg=s==='expired'?'EXPIRED':s==='warning'?'EXPIRING SOON':'GOOD';
+      lh+='<div class="fi '+s+'"><div class="fico"><i class="ti '+ic+'"></i></div><div class="fnfo"><div class="fname">'+(item.product_name||'Unknown')+'</div><div class="fdate"><i class="ti ti-calendar" style="font-size:11px"></i>'+fmtDate(item.expiry_date)+'</div><div class="fbadge"><span class="bdg">'+bdg+'</span><span class="dl" style="margin-left:7px">'+daysLabel(item.expiry_date)+'</span></div></div><div class="fact-row"><button class="iact edit" onclick="openEdit(\''+item.id+'\')" title="Edit"><i class="ti ti-edit"></i></button><button class="iact del" onclick="askDel(\''+item.id+'\')" title="Remove"><i class="ti ti-trash"></i></button></div></div>';
+    });
+  }
+  document.getElementById('con').innerHTML=fh+sr+lh;
+}
+
+function renderDash(){
+  var c=counts(),total=c.total||1;
+  var all=items.slice().sort(function(a,b){return diffDays(a.expiry_date)-diffDays(b.expiry_date);});
+  var soon=all.filter(function(i){return diffDays(i.expiry_date)>=0;}).slice(0,6);
+  var nxt=all.find(function(i){var d=diffDays(i.expiry_date);return d>=0&&d<=30;});
+  var h='<div class="dash"><div class="stat-grid"><div class="stat sg"><span class="sv">'+c.good+'</span><span class="sl">Good</span></div><div class="stat sw"><span class="sv">'+c.warning+'</span><span class="sl">Expiring</span></div><div class="stat se"><span class="sv">'+c.expired+'</span><span class="sl">Expired</span></div></div>';
+  if(nxt){var ns=status(nxt.expiry_date),nc=ns==='warning'?'var(--amb)':'var(--red)',ntc=ns==='warning'?'#B45309':'#991B1B',nbc=ns==='warning'?'var(--ab)':'var(--rb)';h+='<div style="background:'+nbc+';border-left:3px solid '+nc+';padding:12px 14px;margin-bottom:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:'+ntc+';margin-bottom:4px"><i class="ti ti-bell" style="font-size:12px;margin-right:4px"></i>Next expiry</div><div style="font-size:14px;font-weight:700;color:#1F2937">'+(nxt.product_name||'Unknown')+'</div><div style="font-size:12px;color:'+nc+';margin-top:2px">'+daysLabel(nxt.expiry_date)+'</div></div>';}
+  if(soon.length){
+    h+='<div class="chart-wrap"><div class="chart-label">Upcoming expirations</div>';
+    var maxD=Math.max.apply(null,soon.map(function(i){return Math.max(diffDays(i.expiry_date),1);}));
+    soon.forEach(function(item){var d=diffDays(item.expiry_date),s=status(item.expiry_date),col=s==='expired'?'var(--red)':s==='warning'?'var(--amb)':'var(--green)',pct=Math.round(Math.min((Math.max(d,1)/Math.max(maxD,1))*100,100)),dL=d===0?'today':d+'d';h+='<div class="bar-row"><div class="bar-name" title="'+(item.product_name||'')+'">'+(item.product_name||'?')+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div><div class="bar-val" style="color:'+col+'">'+dL+'</div></div>';});
+    h+='</div>';
+  }
+  if(c.total>0){
+    h+='<div class="chart-wrap"><div class="chart-label">Status breakdown</div>';
+    [{l:'Good',n:c.good,col:'var(--green)'},{l:'Expiring soon',n:c.warning,col:'var(--amb)'},{l:'Expired',n:c.expired,col:'var(--red)'}].forEach(function(b){var pct=Math.round((b.n/total)*100);h+='<div class="bar-row"><div class="bar-name">'+b.l+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+b.col+'"></div></div><div class="bar-val" style="color:'+b.col+'">'+b.n+'</div></div>';});
+    h+='</div>';
+  }else{h+='<div class="empty" style="height:180px"><div class="eico">📦</div><h2>No items yet</h2><p>Add items to see your pantry dashboard.</p></div>';}
+  h+='</div>';
+  document.getElementById('con').innerHTML=h;
+}
+
+/* ---- Barcode scanner ---- */
+var codeReader=null, scanActive=false;
+
+function setScanSt(msg,cls){var el=document.getElementById('scan-status');if(el){el.textContent=msg;el.className='scan-status'+(cls?' '+cls:'');}}
+function stopScanner(){if(codeReader){try{codeReader.reset();}catch(e){}}codeReader=null;scanActive=false;}
+
+function startScanner(){
+  var wrap=document.getElementById('scanner-wrap'),ph=document.getElementById('scan-ph'),btn=document.getElementById('scan-btn');
+  if(!window.ZXing){setScanSt('Scanner not ready — try again.','err');return;}
+  setScanSt('Starting camera...','ok');
+  if(wrap)wrap.style.display='block';
+  if(ph)ph.style.display='none';
+  if(btn){btn.className='cam-btn red';btn.innerHTML='<i class="ti ti-x" style="font-size:18px"></i>Stop Camera';}
+  try{
+    codeReader=new ZXing.BrowserMultiFormatReader();
+    codeReader.decodeFromConstraints(
+      {video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}},
+      'scanner-video',
+      function(result,err){
+        if(result){var code=result.getText();stopScanner();curBC=code;cascadeLookup(code);return;}
+        if(err&&err.name!=='NotFoundException'){setScanSt('Camera error. Try entering manually.','err');}
+      }
+    );
+    scanActive=true;
+    setScanSt('Point camera at barcode','ok');
+  }catch(e){
+    setScanSt('Could not start camera. Check permissions.','err');
+    if(wrap)wrap.style.display='none';
+    if(ph)ph.style.display='flex';
+    if(btn){btn.className='cam-btn';btn.innerHTML='<i class="ti ti-camera" style="font-size:18px"></i>Open Camera to Scan';}
+  }
+}
+
+function toggleScan(){
+  if(scanActive){stopScanner();rScan();}else{startScanner();}
+}
+
+/* ---- 3-database cascade lookup ---- */
+function cascadeLookup(code){
+  curStep='lookup';
+  var h='<div style="display:flex;flex-direction:column;align-items:center;padding:28px 0 16px">';
+  h+='<div style="width:56px;height:56px;border-radius:28px;background:var(--gb);display:flex;align-items:center;justify-content:center;margin-bottom:14px">';
+  h+='<span class="spin" style="border-color:rgba(16,185,129,.25);border-top-color:var(--green);width:22px;height:22px;border-width:3px"></span></div>';
+  h+='<p id="lookup-msg" style="font-size:14px;font-weight:600;color:#1F2937;margin-bottom:4px">Looking up product...</p>';
+  h+='<p id="lookup-sub" style="font-size:12px;color:var(--gray)">Trying database 1 of 3</p></div>';
+  h+='<div style="background:var(--gb);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;border:1px solid var(--gl);margin-bottom:16px">';
+  h+='<i class="ti ti-barcode" style="font-size:22px;color:var(--green)"></i>';
+  h+='<div><span style="font-size:10px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block">Barcode scanned</span><strong style="font-size:15px;font-weight:700;color:#1F2937">'+code+'</strong></div></div>';
+  h+='<button class="skbtn" onclick="curName=\'\';curStep=\'details\';renderModal()">Skip — enter name manually</button>';
+  document.getElementById('snum').textContent=2;
+  document.getElementById('stitle').textContent='Looking Up...';
+  var pg='';['scan','lookup','details'].forEach(function(s,i){pg+='<div class="pseg '+(i<2?'dn':'')+'"></div>';});
+  document.getElementById('prog').innerHTML=pg;
+  document.getElementById('mback').classList.remove('hid');
+  document.getElementById('mbody').innerHTML=h;
+
+  function setMsg(msg,sub){
+    var m=document.getElementById('lookup-msg'),s=document.getElementById('lookup-sub');
+    if(m)m.textContent=msg; if(s)s.textContent=sub;
+  }
+
+  function done(name){
+    curName=name; curStep='details'; renderModal();
+  }
+
+  function notFound(){
+    var h2='<div class="wbox"><i class="ti ti-alert-triangle"></i><p>Product not found in any database. Please enter the name manually.</p></div>';
+    h2+='<button class="sbtn" style="margin-top:0" onclick="curName=\'\';curStep=\'details\';renderModal()">Enter Name Manually</button>';
+    document.getElementById('mbody').innerHTML=h2;
+  }
+
+  function extractName(data, source){
+    if(source==='off'){
+      if(data&&data.status===1&&data.product){
+        return data.product.product_name||data.product.product_name_en||data.product.product_name_bg||'';
+      }
+    }else if(source==='upcitemdb'){
+      if(data&&data.code==='OK'&&data.items&&data.items.length>0){
+        return data.items[0].title||'';
+      }
+    }else if(source==='ean'){
+      if(data&&data.product&&data.product.name){return data.product.name;}
+      if(data&&data.name){return data.name;}
+    }
+    return '';
+  }
+
+  /* DB 1: Open Food Facts */
+  setMsg('Searching Open Food Facts...','Database 1 of 3');
+  fetch('https://world.openfoodfacts.org/api/v0/product/'+code+'.json')
+    .then(function(r){return r.ok?r.json():Promise.reject();})
+    .then(function(data){
+      var name=extractName(data,'off');
+      if(name){done(name);return;}
+      /* DB 2: UPC Item DB */
+      setMsg('Trying UPC Item DB...','Database 2 of 3');
+      return fetch('https://api.upcitemdb.com/prod/trial/lookup?upc='+code)
+        .then(function(r){return r.ok?r.json():Promise.reject();})
+        .then(function(data2){
+          var name2=extractName(data2,'upcitemdb');
+          if(name2){done(name2);return;}
+          /* DB 3: EAN Search */
+          setMsg('Trying EAN Search...','Database 3 of 3');
+          return fetch('https://api.ean-search.org/api?op=barcode-lookup&ean='+code+'&format=json&lang=1')
+            .then(function(r){return r.ok?r.json():Promise.reject();})
+            .then(function(data3){
+              var d3=Array.isArray(data3)?data3[0]:data3;
+              var name3=d3&&d3.name?d3.name:'';
+              if(name3){done(name3);}else{notFound();}
+            }).catch(function(){notFound();});
+        }).catch(function(){
+          setMsg('Trying EAN Search...','Database 3 of 3');
+          fetch('https://api.ean-search.org/api?op=barcode-lookup&ean='+code+'&format=json&lang=1')
+            .then(function(r){return r.ok?r.json():Promise.reject();})
+            .then(function(data3){
+              var d3=Array.isArray(data3)?data3[0]:data3;
+              var name3=d3&&d3.name?d3.name:'';
+              if(name3){done(name3);}else{notFound();}
+            }).catch(function(){notFound();});
+        });
+    })
+    .catch(function(){
+      setMsg('Trying UPC Item DB...','Database 2 of 3');
+      fetch('https://api.upcitemdb.com/prod/trial/lookup?upc='+code)
+        .then(function(r){return r.ok?r.json():Promise.reject();})
+        .then(function(data2){
+          var name2=extractName(data2,'upcitemdb');
+          if(name2){done(name2);return;}
+          setMsg('Trying EAN Search...','Database 3 of 3');
+          return fetch('https://api.ean-search.org/api?op=barcode-lookup&ean='+code+'&format=json&lang=1')
+            .then(function(r){return r.ok?r.json():Promise.reject();})
+            .then(function(data3){
+              var d3=Array.isArray(data3)?data3[0]:data3;
+              var name3=d3&&d3.name?d3.name:'';
+              if(name3){done(name3);}else{notFound();}
+            }).catch(function(){notFound();});
+        }).catch(function(){
+          setMsg('Trying EAN Search...','Database 3 of 3');
+          fetch('https://api.ean-search.org/api?op=barcode-lookup&ean='+code+'&format=json&lang=1')
+            .then(function(r){return r.ok?r.json():Promise.reject();})
+            .then(function(data3){
+              var d3=Array.isArray(data3)?data3[0]:data3;
+              var name3=d3&&d3.name?d3.name:'';
+              if(name3){done(name3);}else{notFound();}
+            }).catch(function(){notFound();});
+        });
+    });
+}
+
+/* ---- Modal ---- */
+function openAdd(){stopScanner();curStep='scan';curBC='';curName='';curDate='';document.getElementById('add-ov').classList.remove('hid');renderModal();}
+function closeAdd(){stopScanner();document.getElementById('add-ov').classList.add('hid');}
+function ovClick(e){if(e.target===document.getElementById('add-ov'))closeAdd();}
+
+function renderModal(){
+  var nums={scan:1,lookup:2,details:3},titles={scan:'Scan Barcode',lookup:'Looking Up...',details:'Product Details'};
+  var n=nums[curStep]||1;
+  document.getElementById('snum').textContent=n;
+  document.getElementById('stitle').textContent=titles[curStep]||'Scan Barcode';
+  var ph='';['scan','lookup','details'].forEach(function(s,i){ph+='<div class="pseg '+(n>i?'dn':'')+'"></div>';});
+  document.getElementById('prog').innerHTML=ph;
+  curStep!=='scan'?document.getElementById('mback').classList.remove('hid'):document.getElementById('mback').classList.add('hid');
+  if(curStep==='scan')rScan();
+  else if(curStep==='details')rDetails();
+}
+
+function rScan(){
+  stopScanner();
+  var h='<div class="scan-c">';
+  h+='<div id="scan-ph" class="scan-ph"><i class="ti ti-barcode" style="font-size:52px"></i><p>Point camera at product barcode</p></div>';
+  h+='<div id="scanner-wrap" class="scanner-wrap"><video id="scanner-video" autoplay muted playsinline></video><div class="scan-overlay"><div class="scan-frame"></div><div class="scan-line"></div></div></div>';
+  h+='<p id="scan-status" class="scan-status">Tap to open camera</p>';
+  h+='<button id="scan-btn" class="cam-btn" onclick="toggleScan()"><i class="ti ti-camera" style="font-size:18px"></i>Open Camera to Scan</button>';
+  h+='<p class="ort">— or enter barcode manually —</p>';
+  h+='<div class="bc-row"><input id="bci" class="bc-in" type="number" placeholder="Enter barcode number" oninput="curBC=this.value" onkeydown="if(event.key===\'Enter\')manualBC()"><button class="gbtn" onclick="manualBC()"><i class="ti ti-arrow-right"></i></button></div>';
+  h+='<button style="margin-top:10px;background:none;border:none;font-size:13px;color:var(--gray);cursor:pointer;font-family:inherit;padding:6px" onclick="stopScanner();curName=\'\';curStep=\'details\';renderModal()">Skip — enter name manually</button>';
+  h+='</div>';
+  document.getElementById('mbody').innerHTML=h;
+  setTimeout(function(){var el=document.getElementById('bci');if(el)el.focus();},60);
+}
+
+function manualBC(){
+  var v=document.getElementById('bci').value.trim();
+  if(!v){alert('Please enter a barcode number first.');return;}
+  stopScanner();curBC=v;cascadeLookup(v);
+}
+
+function rDetails(err){
+  var h='';
+  if(err)h+='<div class="wbox"><i class="ti ti-info-circle"></i><p>'+err+'</p></div>';
+  if(curName)h+='<div class="succ"><i class="ti ti-circle-check"></i><p>Found: '+curName+'</p></div>';
+  h+='<div class="flbl">Product Name</div><input id="ni" class="tin" type="text" placeholder="e.g. Organic Whole Milk" value="'+curName+'" autocapitalize="words">';
+  h+='<div class="flbl">Expiry Date</div><input id="di" class="tin" type="date" value="'+curDate+'" style="margin-bottom:4px">';
+  h+='<button class="sbtn" onclick="saveItem()"><i class="ti ti-device-floppy" style="font-size:16px;margin-right:6px;vertical-align:-2px"></i>Save to Pantry</button>';
+  document.getElementById('mbody').innerHTML=h;
+  setTimeout(function(){var el=document.getElementById('ni');if(el&&!curName)el.focus();},60);
+}
+
+function saveItem(){
+  var n=document.getElementById('ni').value.trim(),d=document.getElementById('di').value;
+  if(!n){alert('Please enter a product name.');return;}
+  if(!d){alert('Please select an expiry date.');return;}
+  items.push({id:uid(),barcode:curBC.trim(),product_name:n,expiry_date:d,added_date:today()});
+  save();closeAdd();render();
+}
+
+function goBack(){stopScanner();curStep='scan';renderModal();}
+
+function openEdit(id){
+  var item=items.find(function(i){return i.id===id;});if(!item)return;
+  editId=id;
+  var h='<div class="flbl">Product Name</div><input id="en" class="tin" type="text" value="'+item.product_name+'">';
+  h+='<div class="flbl">Expiry Date</div><input id="ed" class="tin" type="date" value="'+item.expiry_date+'" style="margin-bottom:4px">';
+  h+='<button class="sbtn" style="background:#3B82F6;box-shadow:none" onclick="saveEdit()"><i class="ti ti-check" style="font-size:16px;margin-right:6px;vertical-align:-2px"></i>Save Changes</button>';
+  document.getElementById('edit-body').innerHTML=h;
+  document.getElementById('edit-ov').classList.remove('hid');
+  setTimeout(function(){var el=document.getElementById('en');if(el)el.focus();},60);
+}
+function closeEdit(){document.getElementById('edit-ov').classList.add('hid');editId=null;}
+function editOvClick(e){if(e.target===document.getElementById('edit-ov'))closeEdit();}
+function saveEdit(){
+  var n=document.getElementById('en').value.trim(),d=document.getElementById('ed').value;
+  if(!n){alert('Please enter a product name.');return;}
+  if(!d){alert('Please select an expiry date.');return;}
+  var idx=items.findIndex(function(i){return i.id===editId;});
+  if(idx>=0){items[idx].product_name=n;items[idx].expiry_date=d;}
+  save();closeEdit();render();
+}
+
+function askDel(id){
+  var item=items.find(function(i){return i.id===id;});if(!item)return;
+  delId=id;
+  document.getElementById('del-name').textContent=item.product_name;
+  var chip=document.getElementById('del-chip'),s=status(item.expiry_date);
+  chip.textContent=daysLabel(item.expiry_date);
+  chip.style.background=s==='expired'?'#FEF2F2':s==='warning'?'#FFFBEB':'#ECFDF5';
+  chip.style.color=s==='expired'?'#991B1B':s==='warning'?'#92400E':'#065F46';
+  document.getElementById('del-ov').classList.remove('hid');
+}
+function closeDel(){document.getElementById('del-ov').classList.add('hid');delId=null;}
+function confirmDel(){items=items.filter(function(i){return i.id!==delId;});save();closeDel();render();}
+
+render();
+</script>
+</body>
+</html>
